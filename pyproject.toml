@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "protein-folding-alpha-geometry"
+version = "2.0.0"
+description = "EvoFold-Geometry: Invariant Point Attention (IPA) 3D Backbone Frame Generator"
+readme = "README.md"
+authors = [{ name = "Dr. Abu Suraih Sakhri", email = "abusuraih@example.com" }]
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Security/Cryptography",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+protein-folding-alpha-geometry = "evofold_geometry.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/abusuraihsakhri/protein-folding-alpha-geometry"
+Repository = "https://github.com/abusuraihsakhri/protein-folding-alpha-geometry.git"
