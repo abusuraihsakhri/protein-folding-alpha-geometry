@@ -1,7 +1,6 @@
 """
 Prometheus Operational Metrics Exporter for protein-folding-alpha-geometry.
 """
-import time
 from typing import Dict, Any
 
 class SystemMetricsCollector:

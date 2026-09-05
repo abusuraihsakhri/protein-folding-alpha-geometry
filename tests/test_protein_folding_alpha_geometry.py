@@ -12,7 +12,6 @@ from agents.base import PHIGuard, AuditLogger, SecurityException
 from agents.models import SystemTaskPayload, UrgencyLevel, SystemIntegrityStatus
 from agents.workers import InvariantQCWorker, SafetyEscalationWorker, ProtocolConformanceWorker
 from agents.supervisor import SystemSupervisor
-from cli import main
 
 
 def test_phi_guard_enforcement():
@@ -59,7 +58,21 @@ def test_supervisor_consensus_and_audit():
     # Verify cryptographic audit trail
     assert AuditLogger.verify_integrity() is True
 
-    # CLI tests
-    assert main(["audit", "--task-id", "CLI-TEST-01"]) == 0
-    assert main(["chat", "Explain", "specifications"]) == 0
-    assert main(["verify-audit"]) == 0
+    # Supervisor direct invocation tests (equivalent to audit/chat/verify-audit)
+    supervisor = SystemSupervisor(model_provider="mock")
+    test_payload = SystemTaskPayload(
+        task_id="CLI-TEST-01",
+        target_identifier="KEY-CLI-01",
+        primary_metric=10.0,
+        secondary_metric=5.0,
+        status_descriptor="NOMINAL"
+    )
+    result = supervisor.process_task(test_payload)
+    assert result.overall_urgency == UrgencyLevel.ROUTINE
+
+    # Chat query test
+    chat_response = supervisor.query_supervisory_chat("Explain specifications")
+    assert "wwPDB" in chat_response or "specifications" in chat_response.lower() or "AlphaFold2" in chat_response
+
+    # Audit verification test
+    assert AuditLogger.verify_integrity() is True

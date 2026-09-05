@@ -1,7 +1,6 @@
 """
 Autonomous Bayesian Calibration & Active Learning Feedback Engine for protein-folding-alpha-geometry.
 """
-import math
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 

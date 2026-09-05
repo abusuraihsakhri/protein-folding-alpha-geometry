@@ -3,8 +3,8 @@ CLI module for Protein Structure Analysis.
 """
 import argparse
 import json
+import os
 import sys
-import math
 from typing import List
 
 from .engine import (
@@ -19,9 +19,19 @@ from .engine import (
 )
 
 
+def _validate_input_file(filepath: str) -> None:
+    """Validate that the input file exists and is readable."""
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"Input file not found: {filepath}")
+    if not os.path.isfile(filepath):
+        raise ValueError(f"Path is not a file: {filepath}")
+    if not os.access(filepath, os.R_OK):
+        raise PermissionError(f"Cannot read file: {filepath}")
+
+
 def _parse_residues_from_json(filepath: str) -> List[Residue]:
     """Load residues from a JSON file.
-    
+
     Expected format:
     [
         {"name": "ALA", "index": 1, "phi": -57.0, "psi": -47.0},
@@ -33,14 +43,22 @@ def _parse_residues_from_json(filepath: str) -> List[Residue]:
         ...
     ]
     """
+    _validate_input_file(filepath)
+
     with open(filepath, 'r') as f:
         data = json.load(f)
-    
+
+    if not isinstance(data, list):
+        raise ValueError(f"Expected JSON array of residues, got {type(data).__name__}")
+
     residues = []
-    for item in data:
+    for idx, item in enumerate(data):
+        if not isinstance(item, dict):
+            raise ValueError(f"Residue at position {idx} is not a JSON object")
+
         res = Residue(
             name=item.get('name', 'ALA'),
-            index=item.get('index', len(residues)),
+            index=item.get('index', idx),
             phi=item.get('phi'),
             psi=item.get('psi'),
             omega=item.get('omega'),
@@ -54,7 +72,7 @@ def _parse_residues_from_json(filepath: str) -> List[Residue]:
         if 'o' in item:
             res.o_coord = tuple(item['o'])
         residues.append(res)
-    
+
     return residues
 
 
@@ -246,7 +264,7 @@ def main(argv=None):
     p_analyze.add_argument('--json', action='store_true', help='Output as JSON')
     
     args = parser.parse_args(argv)
-    
+
     commands = {
         'rama': cmd_rama,
         'ss': cmd_ss,
@@ -254,8 +272,21 @@ def main(argv=None):
         'contacts': cmd_contacts,
         'analyze': cmd_analyze,
     }
-    
-    return commands[args.command](args)
+
+    try:
+        return commands[args.command](args)
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON in input file - {e}", file=sys.stderr)
+        return 1
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    except PermissionError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
 
 
 if __name__ == '__main__':

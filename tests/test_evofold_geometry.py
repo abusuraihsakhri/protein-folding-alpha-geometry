@@ -571,6 +571,60 @@ def test_cli_analyze(tmp_path):
     ]
     f = tmp_path / 'test.json'
     f.write_text(json.dumps(data))
-    
+
     from evofold_geometry.cli import main
     assert main(['analyze', '-i', str(f)]) == 0
+
+
+# --- Test Input Validation ---
+
+def test_cli_missing_file():
+    """CLI should return error code for non-existent input file."""
+    from evofold_geometry.cli import main
+    result = main(['rama', '-i', '/nonexistent/path/file.json'])
+    assert result == 1
+
+
+def test_cli_invalid_json(tmp_path):
+    """CLI should return error code for invalid JSON input."""
+    import json
+    f = tmp_path / 'bad.json'
+    f.write_text("this is not valid json {{{")
+
+    from evofold_geometry.cli import main
+    result = main(['rama', '-i', str(f)])
+    assert result == 1
+
+
+def test_cli_wrong_json_type(tmp_path):
+    """CLI should return error code for JSON that is not an array."""
+    f = tmp_path / 'obj.json'
+    f.write_text('{"key": "value"}')
+
+    from evofold_geometry.cli import main
+    result = main(['rama', '-i', str(f)])
+    assert result == 1
+
+
+def test_validate_input_file_exists(tmp_path):
+    """_validate_input_file should pass for existing files."""
+    from evofold_geometry.cli import _validate_input_file
+    f = tmp_path / 'exists.json'
+    f.write_text('[]')
+    _validate_input_file(str(f))  # Should not raise
+
+
+def test_validate_input_file_not_found():
+    """_validate_input_file should raise FileNotFoundError for missing files."""
+    from evofold_geometry.cli import _validate_input_file
+    import pytest
+    with pytest.raises(FileNotFoundError):
+        _validate_input_file('/nonexistent/file.json')
+
+
+def test_validate_input_file_not_a_file(tmp_path):
+    """_validate_input_file should raise ValueError for directories."""
+    from evofold_geometry.cli import _validate_input_file
+    import pytest
+    with pytest.raises(ValueError):
+        _validate_input_file(str(tmp_path))
