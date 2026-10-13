@@ -152,3 +152,10 @@ def test_simulator_rejects_nonpositive_count():
     from simulator import run_simulation
     with pytest.raises(ValueError):
         run_simulation(0)
+
+
+def test_docker_context_excludes_local_secrets():
+    ignore = (Path(__file__).resolve().parents[1] / ".dockerignore").read_text().splitlines()
+    assert ".env" in ignore
+    assert ".git" in ignore
+    assert "dist" in ignore
