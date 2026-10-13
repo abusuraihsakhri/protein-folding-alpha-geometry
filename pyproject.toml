@@ -27,3 +27,6 @@ protein-folding-alpha-geometry = "evofold_geometry.cli:main"
 [project.urls]
 Homepage = "https://github.com/abusuraihsakhri/protein-folding-alpha-geometry"
 Repository = "https://github.com/abusuraihsakhri/protein-folding-alpha-geometry"
+
+[tool.setuptools.packages.find]
+include = ["agents*", "evofold_geometry*"]
