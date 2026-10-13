@@ -70,4 +70,5 @@ def api_audit_logs(authorization: str | None = Header(default=None)):
 
 
 # Keep this catch-all mount below API routes.
+app.mount("/evofold_geometry", StaticFiles(directory=Path(__file__).resolve().parent.parent / "evofold_geometry"), name="engine")
 app.mount("/", StaticFiles(directory=Path(__file__).resolve().parent.parent / "web", html=True), name="web")

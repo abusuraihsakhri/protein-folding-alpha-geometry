@@ -39,3 +39,6 @@ output.csv
 # OS
 .DS_Store
 Thumbs.db
+
+# Generated static site
+dist/
