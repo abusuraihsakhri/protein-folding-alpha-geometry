@@ -1,110 +1,59 @@
+"""Compatibility wrappers for the task-audit demonstration.
+
+These are NOT protein structure prediction or SE(3)-equivariant agents.
+The maintained implementation is in the top-level agents package.
+Install the optional API dependencies before importing this module.
 """
-Distributed Component Coordination & Executive Hierarchy for EvoFold-Geometry: Invariant Point Attention (IPA) 3D Backbone Frame Generator.
-Domain: Computational Chemistry & AI Drug Discovery
-"""
-import uuid
-from typing import Dict, Any, List, Optional
-from .models import FrontierPayload, AgentTelemetryAlert, ExecutionStatus
-from .engine import FrontierDomainEngine
+from agents.models import SystemTaskPayload
+from agents.supervisor import SystemSupervisor
+from agents.workers import (
+    InvariantQCWorker,
+    ProtocolConformanceWorker,
+    SafetyEscalationWorker,
+)
 
 
 class SE3EquivariantFrameAgent:
-    """Specialized Sub-Agent 1: Primary Parameter & Integrity Auditor."""
-    def audit(self, payload: FrontierPayload) -> List[AgentTelemetryAlert]:
-        alerts = []
-        res = FrontierDomainEngine.evaluate_primary_parameter(payload.primary_metric)
-        if res:
-            alerts.append(AgentTelemetryAlert(
-                alert_id=str(uuid.uuid4())[:8],
-                origin_agent="SE3EquivariantFrameAgent",
-                status=ExecutionStatus.ELEVATED_RISK,
-                summary=res["summary"],
-                technical_details=res["details"],
-                actionable_remediation=res["remediation"],
-            ))
-        return alerts
+    """Legacy name for the demonstration's primary-metric worker."""
+
+    @staticmethod
+    def audit(payload: SystemTaskPayload):
+        return InvariantQCWorker.evaluate(payload)
 
 
 class DihedralRamachandranAuditorAgent:
-    """Specialized Sub-Agent 2: Critical Kinetics & Security Safeguard."""
-    def audit(self, payload: FrontierPayload) -> List[AgentTelemetryAlert]:
-        alerts = []
-        res = FrontierDomainEngine.evaluate_secondary_kinetics(payload.secondary_metric, payload.is_critical_flag)
-        if res:
-            alerts.append(AgentTelemetryAlert(
-                alert_id=str(uuid.uuid4())[:8],
-                origin_agent="DihedralRamachandranAuditorAgent",
-                status=ExecutionStatus.CRITICAL_INTERVENTION if payload.is_critical_flag else ExecutionStatus.ELEVATED_RISK,
-                summary=res["summary"],
-                technical_details=res["details"],
-                actionable_remediation=res["remediation"],
-            ))
-        return alerts
+    """Legacy name for the demonstration's critical-flag worker."""
+
+    @staticmethod
+    def audit(payload: SystemTaskPayload):
+        return SafetyEscalationWorker.evaluate(payload)
 
 
 class ClashPenaltyCalculatorAgent:
-    """Specialized Sub-Agent 3: Protocol Conformance & Anomaly Triager."""
-    def audit(self, payload: FrontierPayload) -> List[AgentTelemetryAlert]:
-        alerts = []
-        res = FrontierDomainEngine.audit_specification_conformance(payload.status_descriptor, payload.attributes)
-        if res:
-            alerts.append(AgentTelemetryAlert(
-                alert_id=str(uuid.uuid4())[:8],
-                origin_agent="ClashPenaltyCalculatorAgent",
-                status=ExecutionStatus.ELEVATED_RISK,
-                summary=res["summary"],
-                technical_details=res["details"],
-                actionable_remediation=res["remediation"],
-            ))
-        return alerts
+    """Legacy name for the demonstration's descriptor worker."""
+
+    @staticmethod
+    def audit(payload: SystemTaskPayload):
+        return ProtocolConformanceWorker.evaluate(payload)
 
 
 class EvoFoldCoordinator:
-    """Executive Coordinator & Air-Gapped Supervisory Intelligence."""
+    """Adapter preserving the old process / query method names."""
+
     def __init__(self):
+        self._supervisor = SystemSupervisor(model_provider="mock")
         self.sub_1 = SE3EquivariantFrameAgent()
         self.sub_2 = DihedralRamachandranAuditorAgent()
         self.sub_3 = ClashPenaltyCalculatorAgent()
-        self.execution_ledger: Dict[str, Dict[str, Any]] = {}
+        self.execution_ledger = {}
 
-    def process(self, payload: FrontierPayload) -> Dict[str, Any]:
-        all_alerts: List[AgentTelemetryAlert] = []
-        all_alerts.extend(self.sub_1.audit(payload))
-        all_alerts.extend(self.sub_2.audit(payload))
-        all_alerts.extend(self.sub_3.audit(payload))
+    def process(self, payload: SystemTaskPayload):
+        if isinstance(payload, dict):
+            payload = SystemTaskPayload.model_validate(payload)
+        dossier = self._supervisor.process_task(payload)
+        result = dossier.to_dict()
+        self.execution_ledger[payload.task_id] = result
+        return result
 
-        crit_count = sum(1 for a in all_alerts if a.status == ExecutionStatus.CRITICAL_INTERVENTION)
-        warn_count = sum(1 for a in all_alerts if a.status == ExecutionStatus.ELEVATED_RISK)
-
-        if crit_count > 0:
-            status = ExecutionStatus.CRITICAL_INTERVENTION
-        elif warn_count > 0:
-            status = ExecutionStatus.ELEVATED_RISK
-        else:
-            status = ExecutionStatus.NOMINAL
-
-        dossier = {
-            "system": "protein-folding-alpha-geometry",
-            "domain": "Computational Chemistry & AI Drug Discovery",
-            "task_id": payload.task_id,
-            "target_identifier": payload.target_identifier,
-            "overall_status": status.value,
-            "total_alerts": len(all_alerts),
-            "critical_count": crit_count,
-            "warning_count": warn_count,
-            "alerts": [a.to_dict() for a in all_alerts],
-            "standard_specification": "AlphaFold2 / ESMFold Structural Biology",
-            "consensus_summary": f"Consensus evaluation completed across 3 sub-agents with status [{status.value}].",
-        }
-
-        self.execution_ledger[payload.task_id] = dossier
-        return dossier
-
-    def query_supervisory_chat(self, query: str) -> str:
-        q = query.strip().lower()
-        if "status" in q or "ledger" in q:
-            return f"EvoFold-Geometry: Invariant Point Attention (IPA) 3D Backbone Frame Generator currently managing {len(self.execution_ledger)} execution tasks in air-gapped memory."
-        elif "standard" in q or "spec" in q:
-            return "Active runtime operating strictly according to AlphaFold2 / ESMFold Structural Biology specifications."
-        else:
-            return f"EvoFold-Geometry: Invariant Point Attention (IPA) 3D Backbone Frame Generator executive coordinator online. Zero-telemetry on-premises surveillance active."
+    def query_supervisory_chat(self, query: str):
+        return self._supervisor.query_supervisory_chat(query)

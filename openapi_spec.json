@@ -2,12 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Protein Folding Alpha Geometry API",
-    "description": "Enterprise Distributed Component Platform (Clinical & Cryptographic AI) adhering to CAP / CLSI / NIST Standards.",
-    "version": "3.0.0-ENTERPRISE",
-    "contact": {
-      "name": "Dr. Abu Suraih Sakhri",
-      "url": "https://github.com/abusuraihsakhri"
-    }
+    "description": "Heuristic geometry analysis and separate threshold-based task-audit demonstration. Runtime OpenAPI is authoritative at /openapi.json.",
+    "version": "3.0.1"
   },
   "paths": {
     "/health": {
@@ -76,7 +72,7 @@
     },
     "/api/chat": {
       "post": {
-        "summary": "Air-gapped supervisory conversational assistant",
+        "summary": "Deterministic mock response; no external model inference",
         "requestBody": {
           "content": {
             "application/json": {
@@ -103,10 +99,13 @@
     },
     "/api/audit/logs": {
       "get": {
-        "summary": "Retrieve and cryptographically verify HMAC audit trail",
+        "summary": "Read audit metadata with an explicitly configured bearer token",
         "responses": {
           "200": {
             "description": "Cryptographic audit trail"
+          },
+          "403": {
+            "description": "Access disabled or missing/invalid bearer token"
           }
         }
       }

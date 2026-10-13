@@ -136,3 +136,19 @@ def test_short_secondary_structure_runs_even_for_short_sequences():
     assert _smooth_secondary_structure(['H']) == ['C']
     assert _smooth_secondary_structure(['E', 'E']) == ['C', 'C']
     assert _smooth_secondary_structure(['H', 'H', 'H']) == ['H', 'H', 'H']
+
+
+def test_legacy_coordinator_import_and_process():
+    from evofold_geometry.agents import EvoFoldCoordinator
+    coordinator = EvoFoldCoordinator()
+    result = coordinator.process({
+        'task_id': 'LEGACY-1', 'target_identifier': 'TARGET-1', 'primary_metric': 10
+    })
+    assert result['task_id'] == 'LEGACY-1'
+    assert coordinator.execution_ledger['LEGACY-1'] == result
+
+
+def test_simulator_rejects_nonpositive_count():
+    from simulator import run_simulation
+    with pytest.raises(ValueError):
+        run_simulation(0)
