@@ -3,6 +3,7 @@ Supervisor Orchestrator & Operations Intelligence for Protein Folding Alpha Geom
 Domain: AI Drug Discovery, Structural Biology & Wet-Lab Robotics
 """
 import uuid
+import json
 from typing import Dict, Any, List
 from .base import AuditLogger, PHIGuard
 from .models import SystemTaskPayload, AgentAlert, ConsensusDossier, UrgencyLevel, SystemIntegrityStatus
@@ -25,6 +26,7 @@ class SystemSupervisor:
         PHIGuard.assert_no_phi(payload.task_id)
         PHIGuard.assert_no_phi(payload.target_identifier)
         PHIGuard.assert_no_phi(payload.status_descriptor)
+        PHIGuard.assert_no_phi(json.dumps(payload.attributes))
 
         # Multi-worker evaluations
         all_alerts: List[AgentAlert] = []

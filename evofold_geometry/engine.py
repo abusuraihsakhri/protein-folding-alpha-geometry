@@ -282,12 +282,16 @@ def calculate_hydrogen_bonds(residues: List[Residue],
                               distance_cutoff: float = HBOND_DISTANCE_CUTOFF) -> List[HydrogenBond]:
     """Calculate backbone N-H···O=C hydrogen bonds.
     
-    A hydrogen bond exists when the N-O distance is < distance_cutoff (default 3.5 Å).
+    This is a distance-only N–O proximity heuristic, not an energy-based
+    hydrogen-bond assignment (explicit hydrogen atoms and angles are omitted).
+    An N–O pair is reported below distance_cutoff (default 3.5 Å).
     Energy is estimated using a simple distance-dependent formula:
         E = k * (1/r) where k = -2.7 kcal/mol (typical H-bond)
     
     Excludes bonds between residues closer than 2 in sequence (i, i+1, i+2).
     """
+    if not math.isfinite(distance_cutoff) or distance_cutoff <= 0:
+        raise ValueError('Hydrogen-bond distance cutoff must be positive and finite')
     hbonds = []
     
     for i, donor_res in enumerate(residues):
@@ -323,6 +327,8 @@ def generate_contact_map(residues: List[Residue],
     Two residues are in contact if their CA atoms are within cutoff distance (default 8.0 Å).
     Returns the full distance matrix and list of contacts.
     """
+    if not math.isfinite(cutoff) or cutoff <= 0:
+        raise ValueError('Contact distance cutoff must be positive and finite')
     n = len(residues)
     distance_matrix = [[0.0] * n for _ in range(n)]
     contacts = []
@@ -393,7 +399,7 @@ def _dot(a: Tuple[float, float, float], b: Tuple[float, float, float]) -> float:
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 
 
-def compute_dihedral_angles(residues: List[Residue]) -> List[Residue]:
+def compute_dihedral_angles(residues: List[Residue], *, only_missing: bool = False) -> List[Residue]:
     """Compute phi, psi, omega dihedral angles from backbone coordinates.
     
     Phi: C(i-1) - N(i) - CA(i) - C(i)
@@ -405,19 +411,19 @@ def compute_dihedral_angles(residues: List[Residue]) -> List[Residue]:
             continue
         
         # Phi: requires C of previous residue
-        if i > 0 and residues[i-1].c_coord is not None:
+        if (not only_missing or res.phi is None) and i > 0 and residues[i-1].c_coord is not None:
             res.phi = _dihedral_angle(
                 residues[i-1].c_coord, res.n_coord, res.ca_coord, res.c_coord
             )
         
         # Psi: requires N of next residue
-        if i < len(residues) - 1 and residues[i+1].n_coord is not None:
+        if (not only_missing or res.psi is None) and i < len(residues) - 1 and residues[i+1].n_coord is not None:
             res.psi = _dihedral_angle(
                 res.n_coord, res.ca_coord, res.c_coord, residues[i+1].n_coord
             )
         
         # Omega: requires CA and C of previous residue
-        if i > 0 and residues[i-1].ca_coord is not None and residues[i-1].c_coord is not None:
+        if (not only_missing or res.omega is None) and i > 0 and residues[i-1].ca_coord is not None and residues[i-1].c_coord is not None:
             res.omega = _dihedral_angle(
                 residues[i-1].ca_coord, residues[i-1].c_coord, res.n_coord, res.ca_coord
             )
@@ -440,10 +446,9 @@ def analyze_structure(residues: List[Residue],
     """
     # Compute angles from coordinates if not set
     has_coords = any(r.n_coord is not None for r in residues)
-    has_angles = any(r.phi is not None for r in residues)
-    
-    if has_coords and not has_angles:
-        residues = compute_dihedral_angles(residues)
+    if has_coords:
+        # Preserve supplied torsions while deriving any missing values from coordinates.
+        residues = compute_dihedral_angles(residues, only_missing=True)
     
     # Assign secondary structure
     ss_assignments = assign_secondary_structure(residues)

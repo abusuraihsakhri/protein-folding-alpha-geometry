@@ -1,17 +1,10 @@
-version: '3.8'
-
 services:
   protein-folding-alpha-geometry:
     build: .
-    container_name: protein-folding-alpha-geometry
     ports:
       - "8000:8000"
     environment:
-      - AUDIT_SECRET_KEY=${AUDIT_SECRET_KEY:-changeme-in-production}
-      - MODEL_PROVIDER=mock
+      AUDIT_SECRET_KEY: ${AUDIT_SECRET_KEY:?Set AUDIT_SECRET_KEY before starting}
+      MODEL_PROVIDER: mock
+      AUDIT_LOG_ACCESS_TOKEN: ${AUDIT_LOG_ACCESS_TOKEN:-}
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 3

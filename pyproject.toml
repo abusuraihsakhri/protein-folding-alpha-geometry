@@ -1,27 +1,29 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "protein-folding-alpha-geometry"
-version = "2.0.0"
-description = "EvoFold-Geometry: Invariant Point Attention (IPA) 3D Backbone Frame Generator"
+version = "3.0.1"
+description = "Protein backbone geometry analysis: Ramachandran regions, secondary structure, N-O proximity, and contact maps"
 readme = "README.md"
-authors = [{ name = "Dr. Abu Suraih Sakhri", email = "abusuraih@example.com" }]
+requires-python = ">=3.10"
 license = { text = "MIT" }
+authors = [{ name = "Dr. Abu Suraih Sakhri" }]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-    "Topic :: Security/Cryptography",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
-requires-python = ">=3.9"
 dependencies = []
+
+[project.optional-dependencies]
+api = ["fastapi>=0.100,<1", "uvicorn>=0.23,<1", "pydantic>=2,<3"]
+dev = ["pytest>=7,<10", "httpx>=0.25,<1", "fastapi>=0.100,<1", "pydantic>=2,<3"]
 
 [project.scripts]
 protein-folding-alpha-geometry = "evofold_geometry.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/abusuraihsakhri/protein-folding-alpha-geometry"
-Repository = "https://github.com/abusuraihsakhri/protein-folding-alpha-geometry.git"
+Repository = "https://github.com/abusuraihsakhri/protein-folding-alpha-geometry"

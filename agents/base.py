@@ -97,14 +97,29 @@ class AuditTrail:
         return entry
 
     def verify_integrity(self) -> bool:
-        for i, entry in enumerate(self.logs):
-            prev = self.logs[i-1]["current_hash"] if i > 0 else "GENESIS_BLOCK_0000000000000000"
-            if entry["prev_hash"] != prev:
-                return False
+        previous = "GENESIS_BLOCK_0000000000000000"
+        try:
+            for entry in self.logs:
+                if entry["prev_hash"] != previous:
+                    return False
+                payload = (
+                    f'{entry["audit_id"]}|{entry["timestamp"]}|{entry["actor"]}|'
+                    f'{entry["actor_tier"]}|{entry["event_type"]}|'
+                    f'{entry["payload_hash"]}|{previous}'
+                )
+                signature = hmac.new(
+                    self.secret_key, payload.encode("utf-8"), hashlib.sha256
+                ).hexdigest()
+                if not hmac.compare_digest(signature, entry["current_hash"]):
+                    return False
+                previous = signature
+        except (KeyError, TypeError):
+            return False
         return True
 
     def get_trail(self) -> List[Dict[str, Any]]:
-        return self.logs
+        # API consumers cannot mutate the authoritative ledger in memory.
+        return [entry.copy() for entry in self.logs]
 
 
 GLOBAL_AUDIT = AuditTrail()
