@@ -1,7 +1,3 @@
-"""
-Protein Folding Alpha Geometry — Enterprise Automated Analytical Suite.
-Domain: AI Drug Discovery, Structural Biology & Wet-Lab Robotics
-Standard: wwPDB / IUPAC / OpenSMILES / ISAC Standards
+"""Task-audit demonstration package (not structural prediction)."""
 
-"""
-__version__ = "3.0.0-ENTERPRISE"
+__version__ = "3.0.1"

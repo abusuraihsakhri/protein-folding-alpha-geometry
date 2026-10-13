@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Task-Audit Console · Protein Geometry</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui,sans-serif;background:#0b1220;color:#edf3ff}
+body{max-width:950px;margin:auto;padding:24px}a{color:#9fc4ff}.panel{background:#16223a;border:1px solid #344b68;border-radius:12px;padding:22px}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+label{display:block;margin:12px 0 5px}input{width:100%;padding:10px;border-radius:6px;border:1px solid #47678f;box-sizing:border-box;color:#fff;background:#0a1324}
+input[type=checkbox]{width:auto}button{padding:12px;background:#2462a7;color:white;border:0;border-radius:8px;cursor:pointer;margin-top:18px}button:disabled{opacity:.5}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#080f1c;padding:14px;border-radius:8px;min-height:180px}
+p{color:#b5c7db}:focus-visible{outline:3px solid #81bfff}
+@media(max-width:700px){.layout{grid-template-columns:1fr}}
+</style></head><body>
+<p><a href="./">← Geometry analyzer</a></p><h1>Server-side task-audit console</h1>
+<p>Demonstration thresholds only; not a protein folding model or clinical decision system. Requires FastAPI at this origin. No simulated success responses.</p>
+<div class="layout"><section class="panel"><form id="form">
+<label for="task_id">Task ID</label><input id="task_id" required value="TASK-001" maxlength="128">
+<label for="target_id">Target identifier (avoid personal data)</label><input id="target_id" required value="TARGET-001" maxlength="128">
+<label for="primary">Primary metric</label><input id="primary" type="number" required step="any" value="29.4">
+<label for="secondary">Secondary metric</label><input id="secondary" type="number" required step="any" value="14.8">
+<label for="descriptor">Descriptor</label><input id="descriptor" value="DISCORDANT_ANOMALY" maxlength="512">
+<label><input id="critical" type="checkbox"> Critical flag</label>
+<button id="run" type="submit">Submit audit</button>
+</form></section>
+<section class="panel"><h2>Response</h2><pre id="output" role="status" aria-live="polite">No tasks submitted.</pre></section></div>
+<script>
+"use strict";
+document.getElementById("form").addEventListener("submit", async event => {
+  event.preventDefault();
+  const button = document.getElementById("run"), out = document.getElementById("output");
+  button.disabled = true; out.textContent = "Submitting…";
+  const get = id => document.getElementById(id);
+  try {
+    const payload = {task_id:get("task_id").value,target_identifier:get("target_id").value,
+      primary_metric:Number(get("primary").value),secondary_metric:Number(get("secondary").value),
+      status_descriptor:get("descriptor").value,is_critical_flag:get("critical").checked};
+    const response = await fetch("./api/audit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    const data = await response.json();
+    if (!response.ok) throw new Error(JSON.stringify(data));
+    out.textContent = JSON.stringify(data,null,2);
+  } catch(error) { out.textContent = "Audit unavailable: " + String(error.message || error); }
+  finally {button.disabled = false; }
+});
+</script></body></html>

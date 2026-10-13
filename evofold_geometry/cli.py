@@ -3,6 +3,7 @@ CLI module for Protein Structure Analysis.
 """
 import argparse
 import json
+import math
 import os
 import sys
 from typing import List
@@ -29,6 +30,24 @@ def _validate_input_file(filepath: str) -> None:
         raise PermissionError(f"Cannot read file: {filepath}")
 
 
+def _finite_number(value, label: str) -> float:
+    if isinstance(value, bool):
+        raise ValueError(f"{label} must be a finite number")
+    try:
+        number = float(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError(f"{label} must be a finite number") from exc
+    if not math.isfinite(number):
+        raise ValueError(f"{label} must be a finite number")
+    return number
+
+
+def _coordinate(value, label: str):
+    if not isinstance(value, (list, tuple)) or len(value) != 3:
+        raise ValueError(f"{label} must contain exactly three coordinates")
+    return tuple(_finite_number(v, label) for v in value)
+
+
 def _parse_residues_from_json(filepath: str) -> List[Residue]:
     """Load residues from a JSON file.
 
@@ -51,26 +70,30 @@ def _parse_residues_from_json(filepath: str) -> List[Residue]:
     if not isinstance(data, list):
         raise ValueError(f"Expected JSON array of residues, got {type(data).__name__}")
 
+    if len(data) > 10000:
+        raise ValueError('Input exceeds the 10,000-residue CLI limit')
     residues = []
     for idx, item in enumerate(data):
         if not isinstance(item, dict):
             raise ValueError(f"Residue at position {idx} is not a JSON object")
 
+        name = item.get('name', 'ALA')
+        index = item.get('index', idx)
+        if not isinstance(name, str) or not name.strip() or len(name) > 12:
+            raise ValueError(f"Invalid residue name at position {idx}")
+        if isinstance(index, bool) or not isinstance(index, int):
+            raise ValueError(f"Residue index at position {idx} must be an integer")
         res = Residue(
-            name=item.get('name', 'ALA'),
-            index=item.get('index', idx),
-            phi=item.get('phi'),
-            psi=item.get('psi'),
-            omega=item.get('omega'),
+            name=name,
+            index=index,
+            phi=_finite_number(item['phi'], 'phi') if item.get('phi') is not None else None,
+            psi=_finite_number(item['psi'], 'psi') if item.get('psi') is not None else None,
+            omega=_finite_number(item['omega'], 'omega') if item.get('omega') is not None else None,
         )
-        if 'n' in item:
-            res.n_coord = tuple(item['n'])
-        if 'ca' in item:
-            res.ca_coord = tuple(item['ca'])
-        if 'c' in item:
-            res.c_coord = tuple(item['c'])
-        if 'o' in item:
-            res.o_coord = tuple(item['o'])
+        for key, attr in [('n', 'n_coord'), ('ca', 'ca_coord'),
+                          ('c', 'c_coord'), ('o', 'o_coord')]:
+            if key in item and item[key] is not None:
+                setattr(res, attr, _coordinate(item[key], f"{key} at residue {idx}"))
         residues.append(res)
 
     return residues

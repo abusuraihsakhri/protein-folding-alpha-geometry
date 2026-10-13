@@ -2,7 +2,7 @@
 Protein Structure Analysis: Ramachandran plots, secondary structure assignment,
 hydrogen bond calculation, and contact map generation.
 """
-__version__ = "3.0.0"
+__version__ = "3.0.1"
 
 from .engine import (
     Residue,

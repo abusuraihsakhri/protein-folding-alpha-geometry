@@ -1,199 +1,105 @@
 # Protein Folding Alpha Geometry
 
-> **Domain:** Computational Biology & AI Drug Discovery
-> **Reference Guidelines & Standards:** `wwPDB, IUPAC & CLSI Computational Guidelines`
+A Python package and browser interface for **protein backbone geometry analysis**. Given residue torsion angles or backbone coordinates, it classifies approximate Ramachandran regions, assigns heuristic secondary structure labels, finds backbone N–O proximity pairs, and generates Cα contact maps.
 
-<div align="center">
+**Scope:** This code does not implement AlphaFold, Invariant Point Attention (IPA), protein sequence folding, or structure prediction. It is a deterministic geometry analyzer.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg?logo=fastapi&logoColor=white)
-![Audit Trail](https://img.shields.io/badge/Audit-HMAC--SHA256_Tamper--Evident-brightgreen.svg)
-![Zero-PHI Guard](https://img.shields.io/badge/Guard-Zero--PHI_Outbound-blue.svg)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)
+## Features
 
-</div>
+- Ramachandran classification using circular angular distance to reference centers
+- Angle-based secondary-structure labels (H, E, T, P, C), with short helix/strand runs smoothed
+- N–O proximity pairs and Cα contact maps with configurable distance thresholds
+- Computation of missing phi/psi/omega torsions from coordinates
+- CLI commands, local Python-in-browser visualization/export, and an optional FastAPI task-audit demonstration
 
----
+## Browser analyzer
 
-## 📖 What It Does
+The static interface under the web directory executes the **same Python engine** in Pyodide. Paste residue JSON or upload a JSON file, run analysis, inspect the Ramachandran scatter plot and numerical output, then download the result as JSON.
 
-**Protein Folding Alpha Geometry** is an advanced analytical and computational platform implementing Invariant Point Attention (IPA) SE(3)-equivariant protein 3D backbone generator. It provides:
+Build the static site using:
 
-- **Protein Structure Analysis**: Ramachandran plot classification, secondary structure assignment, hydrogen bond calculation, and contact map generation
-- **Distributed Component Coordination**: Multi-worker evaluation system with consensus-based urgency classification
-- **Enterprise Security**: Zero-PHI outbound guard and tamper-evident HMAC-SHA256 audit trail
-- **FastAPI REST API**: OpenAPI endpoints for programmatic access
+~~~bash
+python scripts/build_pages.py
+~~~
 
----
+The Pages workflow publishes the generated dist folder from master when GitHub Pages is enabled. Pyodide is loaded from an external CDN; an internet connection is needed to initialize the Python runtime. User residue input remains in the browser (there is no application-operated upload endpoint). The browser limits JSON to 1 MB and analysis to 1,000 residues. The CLI supports up to 10,000.
 
-## ⚙️ Key Capabilities & Algorithmic Modules
+## Installation and CLI
 
-- **Deterministic Calculation Engine**: Strict compliance with standard reference formulations and thresholds
-- **Risk & Urgency Classification**: Multi-tier categorization with automated clinical/operational action recommendations
-- **Validation & Guardrails**: Rigorous input bounds checking and anomaly detection
-- **Ramachandran Plot Analysis**: Classify phi/psi angles into favored/allowed/outlier regions
-- **Secondary Structure Assignment**: H/E/T/P/C classification with smoothing
-- **Hydrogen Bond Detection**: N-H···O=C backbone hydrogen bond identification
-- **Contact Map Generation**: CA-CA distance-based contact mapping
+Python 3.10+ is required. The geometry CLI has no third-party runtime dependencies.
 
----
-
-## 💻 Installation
-
-```bash
-# Clone the repository
+~~~bash
 git clone https://github.com/abusuraihsakhri/protein-folding-alpha-geometry.git
 cd protein-folding-alpha-geometry
+python -m pip install -e .
 
-# Install dependencies
-pip install -e .
-
-# For development (includes test dependencies)
-pip install -e ".[dev]"
-```
-
----
-
-## 🖥️ CLI Usage
-
-### Ramachandran Plot Analysis
-```bash
-python -m evofold_geometry.cli rama -i residues.json
 python -m evofold_geometry.cli rama -i residues.json --json
-```
-
-### Secondary Structure Assignment
-```bash
-python -m evofold_geometry.cli ss -i residues.json
 python -m evofold_geometry.cli ss -i residues.json --json
-```
-
-### Hydrogen Bond Calculation
-```bash
-python -m evofold_geometry.cli hbonds -i residues.json --cutoff 3.5
 python -m evofold_geometry.cli hbonds -i residues.json --cutoff 3.5 --json
-```
+python -m evofold_geometry.cli contacts -i residues.json --cutoff 8 --json
+python -m evofold_geometry.cli analyze -i residues.json --json
+~~~
 
-### Contact Map Generation
-```bash
-python -m evofold_geometry.cli contacts -i residues.json --cutoff 8.0
-python -m evofold_geometry.cli contacts -i residues.json --cutoff 8.0 --json
-```
+Minimal example:
 
-### Full Structure Analysis
-```bash
-python -m evofold_geometry.cli analyze -i residues.json
-python -m evofold_geometry.cli analyze -i residues.json --hbond-cutoff 3.5 --contact-cutoff 8.0 --json
-```
-
-### Input Data Schema
-
-Residues JSON format:
-```json
+~~~json
 [
-  {"name": "ALA", "index": 1, "phi": -57.0, "psi": -47.0},
-  {"name": "VAL", "index": 2, "phi": -135.0, "psi": 135.0}
+  {"name": "ALA", "index": 1, "phi": -57, "psi": -47},
+  {"name": "ALA", "index": 2, "phi": -62, "psi": -42},
+  {"name": "ALA", "index": 3, "phi": -54, "psi": -50}
 ]
-```
+~~~
 
-Or with 3D coordinates:
-```json
+Coordinate input supplies n, ca, c, and o as three-element lists, in Å:
+
+~~~json
 [
-  {"name": "ALA", "index": 1, "n": [x,y,z], "ca": [x,y,z], "c": [x,y,z], "o": [x,y,z]},
-  ...
+  {"name": "ALA", "index": 1, "n": [0,0,0], "ca": [1,0,0], "c": [1,1,0], "o": [1,2,0]}
 ]
-```
+~~~
 
----
+All supplied angles and coordinates must be finite. For the full analysis, supplied angles take precedence, and only missing torsions are calculated from adjacent coordinate records where possible.
 
-## 🛡️ Security & Enterprise Architecture
+## Optional FastAPI server
 
-* **Zero-PHI Outbound Interceptor:** Active regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers
-* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation and state transition
-* **Air-Gapped LLM Reasoning Adapter:** Agnostic integration for local Ollama instances (`llama3`, `mistral`), Claude 3.5 Sonnet, GPT-4o, and deterministic test mocks
-* **Active Learning Bayesian Calibration:** Dynamic tracker updating worker reliability weights and monitoring Brier calibration drift
-* **FastAPI & Prometheus Telemetry:** Exposes OpenAPI 3.1 REST endpoints and operational Prometheus metrics (`/metrics`)
+~~~bash
+python -m pip install -e ".[api]"
+uvicorn agents.api:app --host 127.0.0.1 --port 8000
+~~~
 
-### Environment Configuration
+The geometry analyzer is available at http://127.0.0.1:8000/ and the separate task-audit demonstration at http://127.0.0.1:8000/operations.html. API documentation is at http://127.0.0.1:8000/docs.
 
-Copy `.env.example` to `.env` and configure:
+Endpoints: GET /health, GET /metrics (Prometheus text), POST /api/audit, POST /api/chat, and GET /api/audit/logs. The logs endpoint is disabled unless the server has an AUDIT_LOG_ACCESS_TOKEN; supply that token in an Authorization: Bearer header.
 
-```bash
-cp .env.example .env
-```
+Docker:
 
-Key variables:
-- `AUDIT_SECRET_KEY`: HMAC-SHA256 signing key (generate with `python -c "import secrets; print(secrets.token_hex(32))"`)
-- `MODEL_PROVIDER`: LLM provider (`mock`, `ollama`, `claude`, `openai`)
+~~~bash
+export AUDIT_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')"
+docker compose up --build
+~~~
 
----
+The audit demonstration is distinct from the geometry calculation. Its threshold-based workers are not a protein prediction system. The only implemented model provider is the deterministic mock. No external model API integration is available.
 
-## 🧪 Testing & Verification
+## Testing
 
-Run the automated test suite:
+~~~bash
+python -m pip install -e ".[api,dev]"
+python -m pytest -q
+python -m compileall -q agents evofold_geometry scripts
+python scripts/build_pages.py
+node --check web/app.js
+~~~
 
-```bash
-pytest -v
-```
+CI tests Python 3.10, 3.11 and 3.12 and checks the static-site build.
 
-Execute high-throughput batch simulation benchmarks:
+## Scientific and privacy limitations
 
-```bash
-python simulator.py --tasks 1000 --concurrency 8
-```
+Ramachandran classifications use simplified angular regions, **not** residue-specific validated probability distributions. Secondary structure is not computed using DSSP. N–O proximity and inverse-distance energy scores do not establish genuine hydrogen bonds. Cα contacts include nearby sequence neighbors. Unknown atom-pair distances in the matrix are represented as zero, not as measured zero-length separation.
 
----
+The task-audit service has a regex-based sensitive-identifier guard, not comprehensive de-identification or HIPAA certification. Do not submit personal or clinical identifiers. Audit records are held in memory only; HMAC validation detects mutation of retained records but does not anchor the log externally or guarantee persistence across restarts.
 
-## 🐳 Container Deployment
+The browser is designed for recent WebAssembly-capable desktop and mobile browsers, subject to available device memory and network access for Pyodide.
 
-```bash
-docker build -t protein-folding-alpha-geometry .
-docker run -p 8000:8000 -e AUDIT_SECRET_KEY=your-secret-key protein-folding-alpha-geometry
-```
+## License
 
-Or using Docker Compose:
-
-```bash
-# Set your audit key
-export AUDIT_SECRET_KEY=your-secret-key
-
-docker-compose up -d
-```
-
----
-
-## 📁 Project Structure
-
-```
-protein-folding-alpha-geometry/
-├── agents/                  # Enterprise distributed component agents
-│   ├── api.py              # FastAPI REST server
-│   ├── base.py             # Security, PHI guard, HMAC audit
-│   ├── learning.py         # Bayesian calibration engine
-│   ├── llm_factory.py      # LLM provider factory
-│   ├── metrics.py          # Prometheus metrics exporter
-│   ├── models.py           # Pydantic data models
-│   ├── streamer.py         # WebSocket telemetry broadcaster
-│   ├── supervisor.py       # Master coordinator
-│   └── workers.py          # Specialized domain workers
-├── evofold_geometry/        # Core protein structure analysis
-│   ├── agents.py           # SE(3)-equivariant frame agents
-│   ├── cli.py              # Command-line interface
-│   ├── engine.py           # Structure analysis engine
-│   ├── models.py           # Data model re-exports
-│   └── server.py           # FastAPI application factory
-├── tests/                   # Test suite
-├── web/                     # Operations console (HTML)
-├── enrichment.py            # Enrichment feature suite
-├── simulator.py             # High-throughput simulation
-├── Dockerfile               # Container build
-├── docker-compose.yml       # Container orchestration
-└── pyproject.toml           # Project configuration
-```
-
----
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) for details.
+[MIT](LICENSE).
