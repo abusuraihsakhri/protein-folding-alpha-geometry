@@ -242,9 +242,6 @@ def assign_secondary_structure(residues: List[Residue]) -> List[str]:
 
 def _smooth_secondary_structure(assignments: List[str]) -> List[str]:
     """Remove isolated secondary structure assignments (require >= 3 consecutive)."""
-    if len(assignments) < 3:
-        return assignments[:]
-    
     result = assignments[:]
     
     for ss_type in ('H', 'E'):
@@ -438,7 +435,7 @@ def analyze_structure(residues: List[Residue],
                        contact_cutoff: float = 8.0) -> StructureAnalysisResult:
     """Run complete protein structure analysis.
     
-    1. Compute dihedral angles from coordinates (if angles not already set)
+    1. Compute only missing dihedral angles from available coordinates
     2. Assign secondary structure
     3. Classify Ramachandran angles
     4. Calculate hydrogen bonds

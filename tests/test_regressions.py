@@ -129,3 +129,10 @@ def test_static_builder():
     for name in ("index.html","app.js","operations.html",
                  "evofold_geometry/cli.py","evofold_geometry/engine.py"):
         assert (DIST/name).is_file()
+
+
+def test_short_secondary_structure_runs_even_for_short_sequences():
+    from evofold_geometry.engine import _smooth_secondary_structure
+    assert _smooth_secondary_structure(['H']) == ['C']
+    assert _smooth_secondary_structure(['E', 'E']) == ['C', 'C']
+    assert _smooth_secondary_structure(['H', 'H', 'H']) == ['H', 'H', 'H']
