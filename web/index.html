@@ -1,236 +1,74 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protein Folding Alpha Geometry — Operations Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #090d16;
-            --card: #111827;
-            --border: #1f293d;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.25);
-            --text: #f3f4f6;
-            --text-muted: #9ca3af;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 2rem;
-            min-height: 100vh;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .header-title h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
-        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: var(--accent-glow);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 1.5rem;
-        }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.65rem 0.9rem;
-            background: #0d1322;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
-        .btn {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 0.7rem 1.4rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-        .btn:hover { background: #2563eb; }
-        .terminal {
-            background: #060911;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: #10b981;
-            height: 380px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        .metrics-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .metric-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-        .metric-val { font-size: 1.4rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
-        .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-    </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Local, browser-based protein backbone geometry analysis.">
+<title>Protein Geometry Analyzer</title>
+<style>
+:root{color-scheme:dark;font:16px/1.45 system-ui,sans-serif;background:#0b1220;color:#e8eef9}
+*{box-sizing:border-box}body{margin:0}main{width:min(1120px,94vw);margin:auto;padding:30px 0 48px}
+header{display:flex;flex-wrap:wrap;gap:1.2rem;justify-content:space-between;align-items:center;margin-bottom:22px}
+h1{margin:0;font-size:clamp(1.5rem,3vw,2rem)}h2{margin:.1rem 0 1rem;font-size:1.13rem}
+p{color:#b2c1d8;margin:.5rem 0}a{color:#a9c9ff}
+.subtitle{max-width:710px}.pill{border:1px solid #436d9b;padding:6px 11px;border-radius:99px;color:#c8defb;font-size:.78rem}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.panel{border:1px solid #263a56;border-radius:14px;background:#121e31;padding:20px;min-width:0}
+label{display:block;font-size:.87rem;font-weight:600;margin:14px 0 6px}
+textarea,input{width:100%;font:inherit;background:#090f1c;border:1px solid #395070;border-radius:8px;color:#f0f6ff;padding:11px}
+textarea{min-height:250px;resize:vertical;font:12px/1.5 ui-monospace,Consolas,monospace}
+:focus-visible{outline:3px solid #6dbeff;outline-offset:3px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+button{border:1px solid #4376b5;background:#2361a5;color:#fff;border-radius:8px;padding:11px 17px;font-weight:650;cursor:pointer}
+button.secondary{background:#1b2d46}button:disabled{opacity:.5;cursor:wait}
+.hint{font-size:.82rem}.status{min-height:2rem;margin-top:15px;font-size:.9rem;color:#adcefe}
+.status.error{color:#ffb9b9}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{padding:12px;background:#1b2b44;border:1px solid #2d4562;border-radius:8px}
+.stat strong{display:block;font-size:1.35rem}.stat span{color:#c0cfe4;font-size:.76rem}
+canvas{width:100%;height:auto;margin-top:10px;background:#101a2a;border:1px solid #30435d;border-radius:8px}
+pre{overflow:auto;max-height:350px;border:1px solid #30435d;background:#080f1b;border-radius:8px;padding:13px;font-size:.79rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.muted{color:#93a8c4;font-size:.8rem}details{margin-top:22px}summary{cursor:pointer;font-weight:650}
+footer{margin-top:22px;font-size:.82rem;color:#a5b7cd}
+@media(max-width:780px){.layout{grid-template-columns:1fr}.panel{padding:16px}}
+</style>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js" defer></script>
+<script src="./app.js" defer></script>
 </head>
-<body>
-
-    <div class="header">
-        <div class="header-title">
-            <h1>Protein Folding Alpha Geometry</h1>
-            <p>Domain: Clinical & Cryptographic AI | Standard: CAP / CLSI / NIST Standards | LabMind-Atlas Architecture</p>
-        </div>
-        <div>
-            <span class="badge">Air-Gapped Active</span>
-            <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border-color: #10b981;">Zero-PHI Guard Active</span>
-        </div>
-    </div>
-
-    <div class="metrics-bar">
-        <div class="metric-box">
-            <div class="metric-label">System Status</div>
-            <div class="metric-val" style="color: var(--success);" id="m-status">OPTIMAL</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Tasks Processed</div>
-            <div class="metric-val" id="m-tasks">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Audit Blocks Signed</div>
-            <div class="metric-val" id="m-audit">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">PHI Interceptions</div>
-            <div class="metric-val" style="color: var(--accent);" id="m-phi">0</div>
-        </div>
-    </div>
-
-    <div class="grid">
-        <div class="card">
-            <h2>⚙️ Dispatch Distributed Component Audit</h2>
-            <div class="form-group">
-                <label>Task / Sample ID</label>
-                <input type="text" id="task_id" value="TASK-2026-LIVE-01">
-            </div>
-            <div class="form-group">
-                <label>Target Identifier</label>
-                <input type="text" id="target_id" value="SPECIMEN-ALPHA-77">
-            </div>
-            <div class="form-group">
-                <label>Primary Measurement / Value</label>
-                <input type="number" id="primary_metric" value="29.4" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Secondary Metric / Kinetic Index</label>
-                <input type="number" id="secondary_metric" value="14.8" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Status / Phenotype Descriptor</label>
-                <input type="text" id="status_descriptor" value="DISCORDANT_ANOMALY">
-            </div>
-            <div class="form-group">
-                <label><input type="checkbox" id="is_critical" checked> Trigger Emergency / Critical Flag</label>
-            </div>
-            <button class="btn" onclick="runAudit()">Execute Distributed Component Audit</button>
-        </div>
-
-        <div class="card">
-            <h2>📊 Real-Time Consensus Dossier & Audit Log</h2>
-            <div class="terminal" id="outputConsole">// Protein Folding Alpha Geometry Operations Console Ready
-// Connection established with Air-Gapped Supervisor
-// Cryptographic HMAC-SHA256 audit ledger loaded.
-// Ready for live task payload dispatch...</div>
-        </div>
-    </div>
-
-    <script>
-        async function runAudit() {
-            const consoleEl = document.getElementById('outputConsole');
-            consoleEl.innerText = "// Dispatching task across specialized workers...
-// Invoking InvariantQCWorker, SafetyEscalationWorker, ProtocolWorker...";
-
-            const payload = {
-                task_id: document.getElementById('task_id').value,
-                target_identifier: document.getElementById('target_id').value,
-                primary_metric: parseFloat(document.getElementById('primary_metric').value),
-                secondary_metric: parseFloat(document.getElementById('secondary_metric').value),
-                status_descriptor: document.getElementById('status_descriptor').value,
-                is_critical_flag: document.getElementById('is_critical').checked
-            };
-
-            try {
-                const res = await fetch('/api/audit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                consoleEl.innerText = JSON.stringify(data, null, 2);
-                document.getElementById('m-tasks').innerText = parseInt(document.getElementById('m-tasks').innerText) + 1;
-                document.getElementById('m-audit').innerText = parseInt(document.getElementById('m-audit').innerText) + 1;
-            } catch (err) {
-                consoleEl.innerText = "// Offline / Simulation Output:\n" + JSON.stringify({
-                    dossier_id: "DOSSIER-SIM-" + Math.floor(Math.random()*10000),
-                    system: "protein-folding-alpha-geometry",
-                    domain: "Clinical & Cryptographic AI",
-                    task_id: payload.task_id,
-                    overall_urgency: payload.is_critical_flag ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK",
-                    integrity_status: "DISCORDANT_ANOMALY",
-                    alerts: [
-                        { worker: "InvariantQCWorker", alert: "Primary metric exceeds upper reference bound" },
-                        { worker: "SafetyEscalationWorker", alert: "Critical emergency interlock flag active" }
-                    ],
-                    audit_hash: "HMAC_SHA256_e83f9a72b941d6c381f9"
-                }, null, 2);
-            }
-        }
-    </script>
-</body>
-</html>
+<body><main>
+<header><div><h1>Protein Geometry Analyzer</h1><p class="subtitle">Inspect Ramachandran regions, angle-based secondary structure, N–O proximity pairs, and Cα contacts using the repository's Python engine.</p></div>
+<span class="pill">Local analysis · Python in browser</span></header>
+<div class="layout">
+<section class="panel" aria-labelledby="input-title">
+<h2 id="input-title">Residue input</h2>
+<label for="residues">JSON residue array</label>
+<textarea id="residues" spellcheck="false" aria-describedby="schema-help"></textarea>
+<p class="hint" id="schema-help">Each residue has a name and optional integer index. Provide phi/psi in degrees, or coordinate arrays n, ca, c, o in Å. Partial coordinates are accepted.</p>
+<label for="upload">Load JSON file (maximum 1 MB)</label>
+<input type="file" id="upload" accept=".json,application/json">
+<div class="fields">
+<div><label for="hbond">N–O cutoff (Å)</label><input id="hbond" type="number" value="3.5" min=".01" max="100" step=".1"></div>
+<div><label for="contact">Cα contact cutoff (Å)</label><input id="contact" type="number" value="8" min=".01" max="100" step=".1"></div>
+</div>
+<div class="actions"><button id="analyze" type="button">Analyze structure</button><button class="secondary" id="sample" type="button">Load example</button></div>
+<div class="status" role="status" aria-live="polite" id="status">Ready. Python runtime downloads on first analysis.</div>
+</section>
+<section class="panel" aria-labelledby="results-title">
+<h2 id="results-title">Results</h2>
+<div class="stats" aria-live="polite">
+<div class="stat"><strong id="num-residues">—</strong><span>Residues</span></div>
+<div class="stat"><strong id="favored">—</strong><span>Ramachandran favored (%)</span></div>
+<div class="stat"><strong id="hbonds">—</strong><span>N–O proximity pairs</span></div>
+<div class="stat"><strong id="contacts">—</strong><span>Cα contacts</span></div>
+</div>
+<canvas id="rama-plot" width="520" height="350" role="img" aria-label="Ramachandran scatter plot with phi and psi in degrees"></canvas>
+<p class="muted">Heuristic region classification; not experimentally validated torsion distributions.</p>
+<h2>Analysis JSON</h2><pre id="output" aria-live="polite">Run an analysis to view the results.</pre>
+<div class="actions"><button class="secondary" id="download" type="button" disabled>Download JSON</button></div>
+</section></div>
+<details><summary>Interpretation and limitations</summary>
+<p>This tool analyzes residue geometry. It does not predict protein folding, implement Invariant Point Attention, or infer 3D structures from sequences. Secondary structure uses simple angle thresholds with run-length smoothing. N–O distance pairs are not physical hydrogen-bond assignments. Contacts include local sequence neighbors.</p>
+<p>Files stay in this browser session and are not uploaded by this app. A Python runtime is downloaded from a third-party CDN. Browser analysis is capped at 1,000 residues.</p>
+</details>
+<footer><a href="./operations.html">Server-side task-audit console</a> (requires a running FastAPI server) · <a href="https://github.com/abusuraihsakhri/protein-folding-alpha-geometry">Source repository</a></footer>
+</main></body></html>
